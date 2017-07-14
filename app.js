@@ -5,17 +5,31 @@ const morgan = require('morgan');
 const simpleOauthModule = require('simple-oauth2');
 const app = express();
 const authConfig = require('./config/authentication');
-const oauth2 = simpleOauthModule.create(authConfig.solarwinds);
+var oauth2 = null;
 var tokenConfig = {};
-// Authorization uri definition
-const authorizationUri = oauth2.authorizationCode.authorizeURL({
-    redirect_uri: 'http://localhost:3000/callback',
-    scope: 'notifications',
-    state: '3(#0/!~'
+
+// Initial page redirecting to Github
+app.get('/auth/github', (req, res) => {
+    oauth2 = simpleOauthModule.create(authConfig.github);
+    // Authorization uri definition
+    const authorizationUri = oauth2.authorizationCode.authorizeURL({
+        redirect_uri: 'http://localhost:3000/callback',
+        scope: 'notifications',
+        state: '3(#0/!~'
+    });
+    console.log(authorizationUri);
+    res.redirect(authorizationUri);
 });
 
 // Initial page redirecting to Github
 app.get('/auth', (req, res) => {
+    oauth2 = simpleOauthModule.create(authConfig.solarwinds);
+    // Authorization uri definition
+    const authorizationUri = oauth2.authorizationCode.authorizeURL({
+        redirect_uri: 'http://localhost:3000/callback',
+        scope: 'notifications',
+        state: '3(#0/!~'
+    });
     console.log(authorizationUri);
     res.redirect(authorizationUri);
 });
@@ -52,7 +66,7 @@ app.get('/failure', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('Hello<br><a href="/auth">Log in with Github</a><br><a href="/auth">Log in with Solarwinds</a>');
+    res.send('Hello<br><a href="/auth/github">Log in with Github</a><br><a href="/auth">Log in with Solarwinds</a>');
 });
 
 app.listen(3000, () => {
